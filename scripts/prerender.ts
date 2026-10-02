@@ -7,14 +7,19 @@ import { ZONES } from '../src/data/constants';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const distIndexPath = path.resolve(__dirname, '../dist/index.html');
+const chapter24IndexPath = path.resolve(__dirname, '../dist/chapter24/index.html');
+const rootDistIndexPath = path.resolve(__dirname, '../dist/index.html');
 
-if (!fs.existsSync(distIndexPath)) {
-  console.error('dist/index.html not found! Prerender must be run after vite build.');
+const targetPaths = [chapter24IndexPath, rootDistIndexPath].filter((p) => fs.existsSync(p));
+
+if (targetPaths.length === 0) {
+  console.error('Neither dist/chapter24/index.html nor dist/index.html found! Prerender must be run after vite build.');
   process.exit(1);
 }
 
-let htmlContent = fs.readFileSync(distIndexPath, 'utf-8');
+// Read from the primary build target
+const primaryPath = targetPaths[0];
+let htmlContent = fs.readFileSync(primaryPath, 'utf-8');
 
 // Build semantic prerender markup
 const prerenderHtml = `
@@ -139,8 +144,11 @@ if (htmlContent.includes(rootMarker)) {
     prerenderHtml +
     htmlContent.substring(afterRoot);
 
-  fs.writeFileSync(distIndexPath, htmlContent, 'utf-8');
-  console.log('✓ Successfully prerendered 34 chapters, <h1>, and semantic SEO content into dist/index.html!');
+  // Write to all target paths (e.g. dist/chapter24/index.html)
+  for (const targetPath of targetPaths) {
+    fs.writeFileSync(targetPath, htmlContent, 'utf-8');
+    console.log(`✓ Successfully prerendered 34 chapters, <h1>, and semantic SEO content into ${path.relative(path.resolve(__dirname, '..'), targetPath)}!`);
+  }
 } else {
-  console.warn('Could not find <div id="root"> in dist/index.html');
+  console.warn('Could not find <div id="root"> in html output');
 }

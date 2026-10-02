@@ -6,6 +6,9 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     base: '/chapter24/',
+    build: {
+      outDir: 'dist/chapter24',
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
